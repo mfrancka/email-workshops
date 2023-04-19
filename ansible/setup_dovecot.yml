@@ -17,11 +17,6 @@
           host: "localhost"
           password: '{{ mail_db_pass }}'
           priv: "{{ mail_database }}.*:ALL"
-    - role: geerlingguy.certbot
-      certbot_certs:
-        - domains:
-            - '{{ mail_domain }}'
-            - 'mail.{{ mail_domain }}'
     - role: jdauphant.ssl-certs
       ssl_certs_common_name: "{{ mail_domain }}"
     - role: '/root/ansible-role-postfix-dovecot'
@@ -42,19 +37,19 @@
       postfix_ssl_key: '/etc/ssl/{{mail_domain}}/{{mail_domain}}.key'
       postfix_smtp_tls_security_level: 'dane'
       postfix_mydestination: '{{mail_domain}}'
-      postfix_myhostname: 'mail.{{mail_domain}}'
+      postfix_myhostname: '{{mail_domain}}'
       vmail_virtual_domains:
         - id: 1
-          domain: {{mail_domain}}
+          domain: "{{mail_domain}}"
 
       vmail_virtual_users:
         - id: 1
           domain_id: 1
-          password: '{SHA512-CRYPT}$6$reUYY3hlFsTtj/Vs$0ebwi0exN43VFOdMCf1eqgTSzROOVLBLgASLZnWZBxnl3ABXE00qdlaF557PJ.Zu0.QF5AyayF9mt0JmgInye1'
+          password: '{SHA512-CRYPT}$6$H1V2RDjZ8o3OwzeN$IzY0agz/TC9vzT20hBaug01Dz.dLjW1QNfsfzxdQ175aX45SHVwFdB5Zi.khakj3I5es6B3ZR49csSEpW8vQb.'
           email: 'user@{{mail_domain}}'
 
       vmail_virtual_aliases:
         - id: 1
           domain_id: 1
-          source: 'alias@{{mail_domain}'
-          destination: 'user@{mail_domain}'
+          source: 'alias@{{mail_domain}}'
+          destination: 'user@{mail_domain}}'
