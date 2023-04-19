@@ -1,0 +1,60 @@
+---
+- name: Setup mail
+  hosts: all
+  become: true
+  vars:
+    mail_domain: domain
+    mail_database: maildb
+    mail_db_pass: 'ultrasafepassword'
+  roles:
+    - role: geerlingguy.mysql
+      mysql_databases:
+        - name: '{{ mail_database }}'
+          encoding: utf8mb4
+          collation: utf8mb4_polish_ci
+      mysql_users:
+        - name: '{{ mail_database }}'
+          host: "localhost"
+          password: '{{ mail_db_pass }}'
+          priv: "{{ mail_database }}.*:ALL"
+    - role: geerlingguy.certbot
+      certbot_certs:
+        - domains:
+            - '{{ mail_domain }}'
+            - 'mail.{{ mail_domain }}'
+    - role: jdauphant.ssl-certs
+      ssl_certs_common_name: "{{ mail_domain }}"
+    - role: '/root/ansible-role-postfix-dovecot'
+      dovecot_add_example_users: false
+      dovecot_force_imaps: False
+      postfix_dovecot_mysql_db_name: '{{ mail_database }}'
+      postfix_dovecot_mysql_user: '{{ mail_database }}'
+      postfix_dovecot_mysql_password: '{{ mail_db_pass }}'
+      postfix_default_domain: '{{ mail_domain }}'
+      dovecot_protocols:
+        - imap
+        - pop3
+        - lmtp
+      dovecot_mail_privileged_group: vmail
+      dovecot_ssl_cert: '/etc/ssl/{{mail_domain}}/{{mail_domain}}.pem'
+      dovecot_ssl_key: '/etc/ssl/{{mail_domain}}/{{mail_domain}}.key'
+      postfix_ssl_cert: '/etc/ssl/{{mail_domain}}/{{mail_domain}}.pem'
+      postfix_ssl_key: '/etc/ssl/{{mail_domain}}/{{mail_domain}}.key'
+      postfix_smtp_tls_security_level: 'dane'
+      postfix_mydestination: '{{mail_domain}}'
+      postfix_myhostname: 'mail.{{mail_domain}}'
+      vmail_virtual_domains:
+        - id: 1
+          domain: {{mail_domain}}
+
+      vmail_virtual_users:
+        - id: 1
+          domain_id: 1
+          password: '{SHA512-CRYPT}$6$reUYY3hlFsTtj/Vs$0ebwi0exN43VFOdMCf1eqgTSzROOVLBLgASLZnWZBxnl3ABXE00qdlaF557PJ.Zu0.QF5AyayF9mt0JmgInye1'
+          email: 'user@{{mail_domain}}'
+
+      vmail_virtual_aliases:
+        - id: 1
+          domain_id: 1
+          source: 'alias@{{mail_domain}'
+          destination: 'user@{mail_domain}'
