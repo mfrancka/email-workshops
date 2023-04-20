@@ -1,5 +1,7 @@
 ## Playground for Kids
 
+Author: Mariusz Francka
+
 Today we will Play arround with e-mails.
 
 ---
@@ -19,13 +21,18 @@ To in case of error it is good idea to set TTL for record to 60 - not recomended
 
 Configuration:
 
-Subdomain: 
+```
+cat /etc/bind/db.kindergarten
+```
 
-mx1 A IP_of_server
-
-MX record
-MX mx1.${mydomain} - priority 1
-
+```
+mx1    60 IN      A       198.xxx.xxx.xxx
+@      60 IN      MX 1    mx1.${mydomain}
+```
+```
+# rndc reload
+server reload successful
+```
 
 
 ## Install requirements:
@@ -34,14 +41,14 @@ For sure we need to have password for our account and sudo to have root access.
 
 As root:
 ```bash
-apt update && apt install git python3-pip -y
+apt update && apt install git python3-pip swaks curl -y
 pip install ansible
 ```
 
 Now prepare ansible to run and setup for us dovecot, postfix and mysql
 
 ```bash
-git clone https://github.com/mfrancka/ansible-role-postfix-dovecot.git $HOME/ansible-role-postfix-dovecot
+git clone -b workshop https://github.com/mfrancka/ansible-role-postfix-dovecot.git $HOME/ansible-role-postfix-dovecot
 git clone https://github.com/mfrancka/email-workshops.git $HOME/workshop
 
 ansible-galaxy install geerlingguy.mysql jdauphant.ssl-certs 
@@ -62,8 +69,7 @@ Modify this value using your server domain:
     mail_domain: ${mydomain} -> This is not ansible syntax just put there your domain in ""
 ```
 ```
-echo ${mydomain} > /etc/mailname
-ansible-playbook -i 'localhost,' -c local setup_dovecot.yml --ask-become-pass
+ansible-playbook -i 'localhost,' -c local setup_dovecot.yml
 ```
 
 Generate crypted password for our user.
@@ -116,7 +122,7 @@ Run ansible again:
 
 ```bash
 cd $HOME/workshop/ansible
-ansible-playbook -i 'localhost,' -c local setup_dovecot.yml --ask-become-pass
+ansible-playbook -i 'localhost,' -c local setup_dovecot.yml
 ```
 
 ### Lets test our server
@@ -261,12 +267,14 @@ grep 687A8C2B99 /var/log/mail.log
 ```
 
 Now lets check also dovecot logs:
+
 ```
 grep dovecot /var/log/mail.log
 ```
 
 This is finishing idiling
-``
+
+```
 DONE
 A004 FETCH ID_OF_NEW_MESSAGE RFC822
 A005 LOGOUT
@@ -389,3 +397,9 @@ No let's check if it do not lie. Modify test.eml for example "From" header.
 dkimverify < test.eml
 signature verification failed
 ```
+
+## Finish
+
+This is the end I hope you spend nice time :)
+
+Author: Mariusz Francka :)
