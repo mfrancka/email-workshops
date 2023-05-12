@@ -6,6 +6,11 @@
     mail_domain: domain
     mail_database: maildb
     mail_db_pass: 'ultrasafepassword'
+  pre_tasks:
+    - name: Create mailname
+      copy:
+        dest: /etc/mailname
+        content: "{{mail_domain}}"
   roles:
     - role: geerlingguy.mysql
       mysql_databases:
